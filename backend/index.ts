@@ -104,8 +104,38 @@ io.on('connection', (socket: import('socket.io').Socket) => {
             winner,
             isDraw
         });
-        if (!winner && !isDraw) {
+        if (winner || isDraw) {
+            io.to(gameCode).emit('endGame', { winner, isDraw });
+        } else {
             game.currentTurn = 1 - game.currentTurn;
+        }
+    });
+
+    // Restart game
+    socket.on('restartGame', (gameCode: string) => {
+        const game = games[gameCode];
+        if (!game) {
+            socket.emit('restartError', { message: 'Game not found' });
+            return;
+        }
+        game.board = Array.from({ length: 6 }, () => Array(7).fill(0));
+        game.currentTurn = 0;
+        io.to(gameCode).emit('gameUpdate', {
+            board: game.board,
+            currentTurn: game.currentTurn,
+            winner: null,
+            isDraw: false
+        });
+    });
+
+    // Leave game
+    socket.on('leaveGame', (gameCode: string) => {
+        const game = games[gameCode];
+        if (!game) return;
+        game.players = game.players.filter(id => id !== socket.id);
+        socket.leave(gameCode);
+        if (game.players.length === 0) {
+            delete games[gameCode];
         }
     });
 

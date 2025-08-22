@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
+import { io, Socket } from "socket.io-client";
 import Board from "./Board";
 import Controls from "./Controls";
 
-// Minimal socket.io-client replacement using WebSocket for demo
-const WS_URL = "ws://localhost:3000"; // Adjust if backend runs elsewhere
+const WS_URL = "http://localhost:3000"; // socket.io uses http(s) not ws(s)
 
 type GameUpdate = {
     board: number[][];
@@ -18,37 +18,45 @@ const Game: React.FC = () => {
     const [winner, setWinner] = useState<number | null>(null);
     const [isDraw, setIsDraw] = useState(false);
     const [gameCode, setGameCode] = useState<string | null>(null);
-    const ws = useRef<WebSocket | null>(null);
+    const socketRef = useRef<Socket | null>(null);
 
     useEffect(() => {
-        ws.current = new WebSocket(WS_URL);
-        ws.current.onmessage = (event) => {
-            const msg = JSON.parse(event.data);
-            if (msg.type === "gameCreated" && msg.data?.gameCode) {
-                setGameCode(msg.data.gameCode);
-            }
-            if (msg.type === "gameUpdate") {
-                const update: GameUpdate = msg.data;
-                setBoard(update.board);
-                setCurrentTurn(update.currentTurn);
-                setWinner(update.winner);
-                setIsDraw(update.isDraw);
-            }
+        const socket = io(WS_URL);
+        socketRef.current = socket;
+
+        socket.on("gameCreated", (data: { gameCode: string }) => {
+            setGameCode(data.gameCode);
+        });
+
+        socket.on("gameUpdate", (update: GameUpdate) => {
+            setBoard(update.board);
+            setCurrentTurn(update.currentTurn);
+            setWinner(update.winner);
+            setIsDraw(update.isDraw);
+        });
+
+        socket.on("joinedGame", (data: { gameCode: string }) => {
+            setGameCode(data.gameCode);
+        });
+
+        return () => {
+            socket.disconnect();
         };
-        return () => ws.current?.close();
     }, []);
 
     const handleDrop = (col: number) => {
-        // Send move to backend (replace with socket.io if available)
-        ws.current?.send(JSON.stringify({ type: "makeMove", data: { column: col } }));
+        if (!gameCode || !socketRef.current) return;
+        socketRef.current.emit("makeMove", { gameCode, column: col });
     };
 
     const handleRestart = () => {
-        ws.current?.send(JSON.stringify({ type: "restartGame" }));
+        if (!gameCode || !socketRef.current) return;
+        socketRef.current.emit("restartGame", gameCode);
     };
 
     const handleLeave = () => {
-        ws.current?.send(JSON.stringify({ type: "leaveGame" }));
+        if (!gameCode || !socketRef.current) return;
+        socketRef.current.emit("leaveGame", gameCode);
     };
 
     return (

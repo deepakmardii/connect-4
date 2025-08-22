@@ -44,6 +44,21 @@ io.on('connection', (socket: import('socket.io').Socket) => {
         socket.emit('gameCreated', { gameCode });
         console.log(`Game created: ${gameCode} by ${socket.id}`);
     });
+    socket.on('joinGame', (gameCode: string) => {
+        const game = games[gameCode];
+        if (!game) {
+            socket.emit('joinError', { message: 'Game not found' });
+            return;
+        }
+        if (game.players.length >= 2) {
+            socket.emit('joinError', { message: 'Game full' });
+            return;
+        }
+        game.players.push(socket.id);
+        socket.join(gameCode);
+        socket.emit('joinedGame', { gameCode, playerNumber: 2 });
+        console.log(`Player 2 (${socket.id}) joined game ${gameCode}`);
+    });
 });
 
 httpServer.listen(PORT, () => {

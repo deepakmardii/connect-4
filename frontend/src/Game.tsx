@@ -12,6 +12,8 @@ type GameUpdate = {
     isDraw: boolean;
 };
 
+import { useLocation } from "react-router";
+
 const Game: React.FC = () => {
     const [board, setBoard] = useState<number[][]>(Array.from({ length: 6 }, () => Array(7).fill(0)));
     const [currentTurn, setCurrentTurn] = useState<number | null>(0);
@@ -19,6 +21,7 @@ const Game: React.FC = () => {
     const [isDraw, setIsDraw] = useState(false);
     const [gameCode, setGameCode] = useState<string | null>(null);
     const socketRef = useRef<Socket | null>(null);
+    const location = useLocation();
 
     useEffect(() => {
         const socket = io(WS_URL);
@@ -39,10 +42,18 @@ const Game: React.FC = () => {
             setGameCode(data.gameCode);
         });
 
+        // Parse query params
+        const params = new URLSearchParams(location.search);
+        if (params.get("host") === "1") {
+            socket.emit("createGame");
+        } else if (params.get("code")) {
+            socket.emit("joinGame", params.get("code"));
+        }
+
         return () => {
             socket.disconnect();
         };
-    }, []);
+    }, [location.search]);
 
     const handleDrop = (col: number) => {
         if (!gameCode || !socketRef.current) return;

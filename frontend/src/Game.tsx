@@ -17,12 +17,16 @@ const Game: React.FC = () => {
     const [currentTurn, setCurrentTurn] = useState<number | null>(0);
     const [winner, setWinner] = useState<number | null>(null);
     const [isDraw, setIsDraw] = useState(false);
+    const [gameCode, setGameCode] = useState<string | null>(null);
     const ws = useRef<WebSocket | null>(null);
 
     useEffect(() => {
         ws.current = new WebSocket(WS_URL);
         ws.current.onmessage = (event) => {
             const msg = JSON.parse(event.data);
+            if (msg.type === "gameCreated" && msg.data?.gameCode) {
+                setGameCode(msg.data.gameCode);
+            }
             if (msg.type === "gameUpdate") {
                 const update: GameUpdate = msg.data;
                 setBoard(update.board);
@@ -50,6 +54,17 @@ const Game: React.FC = () => {
     return (
         <div>
             <h2>Game Board</h2>
+            {gameCode && (
+                <div style={{ marginBottom: 12 }}>
+                    <strong>Game Code:</strong> <span style={{ fontFamily: "monospace" }}>{gameCode}</span>
+                    <button
+                        style={{ marginLeft: 8 }}
+                        onClick={() => navigator.clipboard.writeText(gameCode)}
+                    >
+                        Copy
+                    </button>
+                </div>
+            )}
             <Board board={board} onDrop={handleDrop} disabled={!!winner || isDraw} />
             <div>
                 {winner ? (

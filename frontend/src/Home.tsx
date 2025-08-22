@@ -10,9 +10,9 @@ const Home: React.FC = () => {
             <button onClick={() => navigate("/game?host=1")}>Create Game</button>
             <br /><br />
             <form
-                onSubmit={e => {
+                onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
                     e.preventDefault();
-                    const code = (e.target as any).elements.code.value.trim();
+                    const code = (e.currentTarget.elements.namedItem("code") as HTMLInputElement)?.value.trim();
                     if (code) navigate(`/game?code=${code}`);
                 }}
             >

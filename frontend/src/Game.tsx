@@ -8,7 +8,7 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useLocation } from "react-router";
 
-const WS_URL = "http://localhost:3000"; // socket.io uses http(s) not ws(s)
+const WS_URL = import.meta.env.VITE_WS_URL || "http://localhost:3000"; // socket.io uses http(s) not ws(s)
 
 type GameUpdate = {
     board: number[][];

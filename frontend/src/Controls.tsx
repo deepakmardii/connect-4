@@ -1,4 +1,5 @@
 import React from "react";
+import { Button } from "@/components/ui/button";
 
 type ControlsProps = {
     onRestart: () => void;
@@ -7,13 +8,13 @@ type ControlsProps = {
 };
 
 const Controls: React.FC<ControlsProps> = ({ onRestart, onLeave, disabled }) => (
-    <div style={{ marginTop: 16 }}>
-        <button onClick={onRestart} disabled={disabled} style={{ marginRight: 8 }}>
+    <div className="mt-4 flex gap-4 justify-center">
+        <Button onClick={onRestart} disabled={disabled} variant="secondary">
             Restart Game
-        </button>
-        <button onClick={onLeave} disabled={disabled}>
+        </Button>
+        <Button onClick={onLeave} disabled={disabled} variant="destructive">
             Leave Game
-        </button>
+        </Button>
     </div>
 );
 

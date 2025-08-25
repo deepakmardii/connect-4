@@ -8,7 +8,7 @@ type BoardProps = {
 };
 
 const Board: React.FC<BoardProps> = ({ board, onDrop, disabled }) => (
-    <div style={{ display: "grid", gridTemplateRows: "repeat(6, 40px)", gridTemplateColumns: "repeat(7, 40px)", gap: 2 }}>
+    <div className="grid grid-rows-6 grid-cols-7 gap-1">
         {board.map((row, rIdx) =>
             row.map((cell, cIdx) => (
                 <Cell

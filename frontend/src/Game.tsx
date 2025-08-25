@@ -2,6 +2,11 @@ import React, { useEffect, useState, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import Board from "./Board";
 import Controls from "./Controls";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { useLocation } from "react-router";
 
 const WS_URL = "http://localhost:3000"; // socket.io uses http(s) not ws(s)
 
@@ -11,8 +16,6 @@ type GameUpdate = {
     winner: number | null;
     isDraw: boolean;
 };
-
-import { useLocation } from "react-router";
 
 const Game: React.FC = () => {
     const [board, setBoard] = useState<number[][]>(Array.from({ length: 6 }, () => Array(7).fill(0)));
@@ -71,30 +74,50 @@ const Game: React.FC = () => {
     };
 
     return (
-        <div>
-            <h2>Game Board</h2>
-            {gameCode && (
-                <div style={{ marginBottom: 12 }}>
-                    <strong>Game Code:</strong> <span style={{ fontFamily: "monospace" }}>{gameCode}</span>
-                    <button
-                        style={{ marginLeft: 8 }}
-                        onClick={() => navigator.clipboard.writeText(gameCode)}
-                    >
-                        Copy
-                    </button>
-                </div>
-            )}
-            <Board board={board} onDrop={handleDrop} disabled={!!winner || isDraw} />
-            <div>
-                {winner ? (
-                    <span>Winner: Player {winner}</span>
-                ) : isDraw ? (
-                    <span>Draw!</span>
-                ) : (
-                    <span>Current Turn: Player {currentTurn! + 1}</span>
-                )}
-            </div>
-            <Controls onRestart={handleRestart} onLeave={handleLeave} disabled={false} />
+        <div className="flex justify-center items-center min-h-screen bg-background">
+            <Card className="w-full max-w-2xl">
+                <CardHeader>
+                    <CardTitle className="text-xl text-center">Game Board</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {gameCode && (
+                        <div className="mb-4 flex items-center gap-2">
+                            <strong>Game Code:</strong>
+                            <span className="font-mono">{gameCode}</span>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => navigator.clipboard.writeText(gameCode)}
+                                    >
+                                        Copy
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Copy to clipboard</TooltipContent>
+                            </Tooltip>
+                        </div>
+                    )}
+                    <div className="flex flex-col items-center gap-4">
+                        <Board board={board} onDrop={handleDrop} disabled={!!winner || isDraw} />
+                        <div className="w-full flex justify-center">
+                            {winner ? (
+                                <Alert variant="default" className="w-fit">
+                                    <AlertTitle>Winner</AlertTitle>
+                                    <AlertDescription>Player {winner}</AlertDescription>
+                                </Alert>
+                            ) : isDraw ? (
+                                <Alert variant="default" className="w-fit">
+                                    <AlertTitle>Draw!</AlertTitle>
+                                </Alert>
+                            ) : (
+                                <span>Current Turn: Player {currentTurn! + 1}</span>
+                            )}
+                        </div>
+                        <Controls onRestart={handleRestart} onLeave={handleLeave} disabled={false} />
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     );
 };
